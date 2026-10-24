@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -32,15 +31,32 @@ public class PlayerCameraController : MonoBehaviour
             return;
         }
 
-        // 플레이어의 현재 방향을 초기 카메라 방향으로 사용합니다.
         yaw = target.eulerAngles.y;
 
-        LockCursor();
+        if (GameManager.Instance == null)
+        {
+            Debug.LogError(
+                "PlayerCameraController: GameManager가 없습니다.",
+                this
+            );
+
+            enabled = false;
+            return;
+        }
+
+        GameManager.Instance.OnGameStateChanged += HandleGameStateChanged;
+
+        HandleGameStateChanged(GameManager.Instance.CurrentState);
     }
 
     private void LateUpdate()
     {
-        if (target == null)
+        if (target == null || GameManager.Instance == null)
+        {
+            return;
+        }
+
+        if (GameManager.Instance.CurrentState != GameState.Playing)
         {
             return;
         }
@@ -48,6 +64,20 @@ public class PlayerCameraController : MonoBehaviour
         ReadMouseInput();
         UpdateCameraPosition();
     }
+    private void HandleGameStateChanged(GameState state)
+    {
+        if (state == GameState.Playing)
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+    }
+
 
     private void ReadMouseInput()
     {
@@ -89,17 +119,19 @@ public class PlayerCameraController : MonoBehaviour
         );
     }
 
-    private void LockCursor()
-    {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-    }
-
     private void OnDisable()
     {
         // 스크립트가 비활성화되면 커서를 다시 표시합니다.
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+    }
+    private void OnDestroy()
+    {
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnGameStateChanged -= HandleGameStateChanged;
+        }
+
     }
 }
 

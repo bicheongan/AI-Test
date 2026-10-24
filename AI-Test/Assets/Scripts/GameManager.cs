@@ -1,4 +1,3 @@
-
 using System;
 using UnityEngine;
 
@@ -17,6 +16,7 @@ public class GameManager : MonoBehaviour
     [Header("Player Settings")]
     [SerializeField] private int maxHealth = 100;
     [SerializeField] private int damagePerHit = 10;
+
 
     public GameState CurrentState { get; private set; } = GameState.Ready;
 
@@ -52,6 +52,7 @@ public class GameManager : MonoBehaviour
         SetState(GameState.Ready);
     }
 
+
     private void Update()
     {
         if (CurrentState != GameState.Playing)
@@ -63,6 +64,7 @@ public class GameManager : MonoBehaviour
         OnSurvivalTimeChanged?.Invoke(SurvivalTime);
     }
 
+    [ContextMenu("Debug/Start Game")]
     public void StartGame()
     {
         if (CurrentState != GameState.Ready)
@@ -74,6 +76,7 @@ public class GameManager : MonoBehaviour
         SetState(GameState.Playing);
     }
 
+    [ContextMenu("Debug/Pause Game")]
     public void PauseGame()
     {
         if (CurrentState != GameState.Playing)
@@ -85,6 +88,7 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0f;
     }
 
+    [ContextMenu("Debug/Resume Game")]
     public void ResumeGame()
     {
         if (CurrentState != GameState.Paused)
@@ -128,6 +132,7 @@ public class GameManager : MonoBehaviour
         OnCoinCountChanged?.Invoke(CoinCount);
     }
 
+    [ContextMenu("Debug/Return To Ready")]
     public void ReturnToReady()
     {
         Time.timeScale = 1f;

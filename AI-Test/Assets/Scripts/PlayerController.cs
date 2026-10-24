@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -45,6 +44,11 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance == null ||
+            GameManager.Instance.CurrentState != GameState.Playing)
+        {
+            return;
+        }
         if (moveAction == null || moveAction.action == null)
         {
             return;
