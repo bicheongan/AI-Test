@@ -1,11 +1,17 @@
+
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameHUD : MonoBehaviour
 {
     [Header("UI References")]
     [SerializeField] private TMP_Text survivalTimeText;
     [SerializeField] private TMP_Text coinCountText;
+
+    [Header("Health UI")]
+    [SerializeField] private TMP_Text healthText;
+    [SerializeField] private Image healthBarFill;
 
     private GameManager subscribedManager;
 
@@ -29,9 +35,16 @@ public class GameHUD : MonoBehaviour
 
         subscribedManager.OnSurvivalTimeChanged += UpdateSurvivalTime;
         subscribedManager.OnCoinCountChanged += UpdateCoinCount;
+        subscribedManager.OnHealthChanged += UpdateHealth;
 
+        // 현재 데이터를 UI에 즉시 반영
         UpdateSurvivalTime(subscribedManager.SurvivalTime);
         UpdateCoinCount(subscribedManager.CoinCount);
+
+        UpdateHealth(
+            subscribedManager.CurrentHealth,
+            subscribedManager.MaxHealth
+        );
     }
 
     private void OnDisable()
@@ -43,6 +56,7 @@ public class GameHUD : MonoBehaviour
 
         subscribedManager.OnSurvivalTimeChanged -= UpdateSurvivalTime;
         subscribedManager.OnCoinCountChanged -= UpdateCoinCount;
+        subscribedManager.OnHealthChanged -= UpdateHealth;
 
         subscribedManager = null;
     }
@@ -71,5 +85,25 @@ public class GameHUD : MonoBehaviour
 
         coinCountText.text = $"Coin {count}";
     }
-}
 
+    private void UpdateHealth(int currentHealth, int maxHealth)
+    {
+        // 기존 체력 텍스트 갱신
+        if (healthText != null)
+        {
+            healthText.text =
+                $"{maxHealth}/{currentHealth}";
+        }
+
+        // 빨간 체력 게이지 갱신
+        if (healthBarFill != null)
+        {
+            float healthRatio = maxHealth > 0
+                ? (float) currentHealth / maxHealth
+                : 0f;
+
+            healthBarFill.fillAmount =
+                Mathf.Clamp01(healthRatio);
+        }
+    }
+}
