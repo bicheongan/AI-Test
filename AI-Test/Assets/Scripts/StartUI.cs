@@ -3,11 +3,11 @@ using UnityEngine.UI;
 
 public class StartUI : MonoBehaviour
 {
-    [Header("Canvas References")]
-    [SerializeField] private Canvas startCanvas;
-    [SerializeField] private Canvas gameCanvas;
+    [Header("Canvas Objects")]
+    [SerializeField] private GameObject startCanvas;
+    [SerializeField] private GameObject gameCanvas;
 
-    [Header("Button References")]
+    [Header("Buttons")]
     [SerializeField] private Button startButton;
     [SerializeField] private Button exitButton;
 
@@ -17,22 +17,14 @@ public class StartUI : MonoBehaviour
     {
         if (GameManager.Instance == null)
         {
-            Debug.LogError(
-                "StartUI: GameManager를 찾을 수 없습니다.",
-                this
-            );
+            Debug.LogError("StartUI: GameManager가 없습니다.", this);
             return;
         }
 
-        if (startCanvas == null ||
-            gameCanvas == null ||
-            startButton == null ||
-            exitButton == null)
+        if (startCanvas == null || gameCanvas == null ||
+            startButton == null || exitButton == null)
         {
-            Debug.LogError(
-                "StartUI: Canvas 또는 Button 연결을 확인하세요.",
-                this
-            );
+            Debug.LogError("StartUI: Inspector 연결을 확인하세요.", this);
             return;
         }
 
@@ -43,24 +35,16 @@ public class StartUI : MonoBehaviour
 
         subscribedManager.OnGameStateChanged += HandleGameStateChanged;
 
-        // 게임 시작 시 현재 상태에 맞게 Canvas 표시
         HandleGameStateChanged(subscribedManager.CurrentState);
     }
 
     private void OnStartButtonClicked()
     {
-        if (subscribedManager == null)
-        {
-            return;
-        }
-
         subscribedManager.StartGame();
     }
 
     private void OnExitButtonClicked()
     {
-        Debug.Log("Game Over");
-
         Application.Quit();
 
 #if UNITY_EDITOR
@@ -72,28 +56,19 @@ public class StartUI : MonoBehaviour
     {
         bool isReady = state == GameState.Ready;
 
-        // 시작 화면
-        startCanvas.enabled = isReady;
-
-        // 실제 게임 HUD
-        gameCanvas.enabled = !isReady;
+        startCanvas.SetActive(isReady);
+        gameCanvas.SetActive(!isReady);
     }
 
     private void OnDestroy()
     {
         if (startButton != null)
-        {
             startButton.onClick.RemoveListener(OnStartButtonClicked);
-        }
 
         if (exitButton != null)
-        {
             exitButton.onClick.RemoveListener(OnExitButtonClicked);
-        }
 
         if (subscribedManager != null)
-        {
             subscribedManager.OnGameStateChanged -= HandleGameStateChanged;
-        }
     }
 }
