@@ -7,15 +7,18 @@ public class MonsterAI : MonoBehaviour
     [Header("Target")]
     [SerializeField] private Transform target;
 
-    [Header("Chase Settings")]
-    [SerializeField] private float updatePathInterval = 0.2f;
+    [Header("Movement")]
+    [SerializeField, Min(0f)] private float initialMoveSpeed = 2f;
+    [SerializeField, Min(0.01f)] private float updatePathInterval = 0.2f;
 
-    [Header("Attack Settings")]
-    [SerializeField] private float attackDistance = 1.5f;
+    [Header("Attack")]
+    [SerializeField, Min(0f)] private float attackDistance = 1.5f;
 
     private NavMeshAgent agent;
     private float pathUpdateTimer;
     private bool hasAttacked;
+
+    public float InitialMoveSpeed => initialMoveSpeed;
 
     private void Awake()
     {
@@ -43,12 +46,7 @@ public class MonsterAI : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance == null)
-        {
-            return;
-        }
-
-        if (!agent.isOnNavMesh)
+        if (GameManager.Instance == null || !agent.isOnNavMesh)
         {
             return;
         }
@@ -69,13 +67,11 @@ public class MonsterAI : MonoBehaviour
             return;
         }
 
-        // 플레이어와 몬스터 사이의 거리 계산
         float distanceToPlayer = Vector3.Distance(
             transform.position,
             target.position
         );
 
-        // 공격 거리 안에 들어오면 공격
         if (!hasAttacked && distanceToPlayer <= attackDistance)
         {
             AttackPlayer();
@@ -100,7 +96,6 @@ public class MonsterAI : MonoBehaviour
 
         hasAttacked = true;
 
-        // GameManager를 통해 플레이어 체력 감소
         GameManager.Instance.DamagePlayer();
 
         Debug.Log(
@@ -108,13 +103,22 @@ public class MonsterAI : MonoBehaviour
             GameManager.Instance.CurrentHealth
         );
 
-        // 공격한 몬스터를 풀로 반환
         gameObject.SetActive(false);
     }
 
     public void SetTarget(Transform newTarget)
     {
         target = newTarget;
+    }
+
+    public void SetMoveSpeed(float speed)
+    {
+        if (agent == null)
+        {
+            agent = GetComponent<NavMeshAgent>();
+        }
+
+        agent.speed = Mathf.Max(0f, speed);
     }
 
     public void ResetMonster()

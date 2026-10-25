@@ -149,4 +149,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterAI
   target: {fileID: 0}
+  initialMoveSpeed: 3
   updatePathInterval: 0.2
+  attackDistance: 1.5
