@@ -1,5 +1,7 @@
+using System.Collections;
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public enum GameState
 {
@@ -17,7 +19,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int maxHealth = 100;
     [SerializeField] private int damagePerHit = 10;
 
-
     public GameState CurrentState { get; private set; } = GameState.Ready;
 
     public int MaxHealth => maxHealth;
@@ -31,9 +32,10 @@ public class GameManager : MonoBehaviour
     public event Action<float> OnSurvivalTimeChanged;
     public event Action OnGameOver;
 
+    private bool startAfterReload;
+
     private void Awake()
     {
-        // GameManager가 중복 생성되는 것을 방지합니다.
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -41,17 +43,26 @@ public class GameManager : MonoBehaviour
         }
 
         Instance = this;
-
-        // 다른 씬으로 이동해도 유지합니다.
         DontDestroyOnLoad(gameObject);
 
-        // 이전 실행에서 시간이 멈춘 상태로 남지 않게 합니다.
         Time.timeScale = 1f;
 
         ResetData();
         SetState(GameState.Ready);
     }
 
+    private void OnEnable()
+    {
+        if (Instance == this)
+        {
+            SceneManager.sceneLoaded += HandleSceneLoaded;
+        }
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+    }
 
     private void Update()
     {
@@ -64,7 +75,6 @@ public class GameManager : MonoBehaviour
         OnSurvivalTimeChanged?.Invoke(SurvivalTime);
     }
 
-    [ContextMenu("Debug/Start Game")]
     public void StartGame()
     {
         if (CurrentState != GameState.Ready)
@@ -76,7 +86,6 @@ public class GameManager : MonoBehaviour
         SetState(GameState.Playing);
     }
 
-    [ContextMenu("Debug/Pause Game")]
     public void PauseGame()
     {
         if (CurrentState != GameState.Playing)
@@ -88,7 +97,6 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0f;
     }
 
-    [ContextMenu("Debug/Resume Game")]
     public void ResumeGame()
     {
         if (CurrentState != GameState.Paused)
@@ -132,13 +140,46 @@ public class GameManager : MonoBehaviour
         OnCoinCountChanged?.Invoke(CoinCount);
     }
 
-    [ContextMenu("Debug/Return To Ready")]
     public void ReturnToReady()
     {
+        ReloadGame(false);
+    }
+
+    public void RestartGame()
+    {
+        ReloadGame(true);
+    }
+
+    private void ReloadGame(bool autoStart)
+    {
+        startAfterReload = autoStart;
+
+        // 일시정지 상태에서도 씬을 정상적으로 다시 로드합니다.
         Time.timeScale = 1f;
 
+        // 씬 재로드 중에는 게임 진행을 막습니다.
+        SetState(GameState.Ready);
+
+        Scene currentScene = SceneManager.GetActiveScene();
+        SceneManager.LoadScene(currentScene.buildIndex);
+    }
+
+    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
         ResetData();
         SetState(GameState.Ready);
+
+        if (startAfterReload)
+        {
+            startAfterReload = false;
+            StartCoroutine(StartAfterSceneReload());
+        }
+    }
+
+    private IEnumerator StartAfterSceneReload()
+    {
+        yield return null;
+        StartGame();
     }
 
     private void EndGame()
@@ -178,6 +219,8 @@ public class GameManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+
         if (Instance == this)
         {
             Instance = null;
@@ -185,4 +228,3 @@ public class GameManager : MonoBehaviour
         }
     }
 }
-

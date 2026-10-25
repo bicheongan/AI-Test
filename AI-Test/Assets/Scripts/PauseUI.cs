@@ -7,7 +7,8 @@ public class PauseUI : MonoBehaviour
     [Header("UI References")]
     [SerializeField] private GameObject pausePanel;
     [SerializeField] private Button resumeButton;
-    [SerializeField] private Button ResetButton;
+    [SerializeField] private Button mainTitleButton;
+    [SerializeField] private Button resetGameButton;
 
     [Header("Input")]
     [SerializeField] private InputActionReference pauseAction;
@@ -18,28 +19,26 @@ public class PauseUI : MonoBehaviour
     {
         if (GameManager.Instance == null)
         {
-            Debug.LogError(
-                "PauseUI: GameManager를 찾을 수 없습니다.",
-                this
-            );
+            Debug.LogError("PauseUI: GameManager가 없습니다.", this);
             return;
         }
 
         if (pausePanel == null ||
             resumeButton == null ||
+            mainTitleButton == null ||
+            resetGameButton == null ||
             pauseAction == null ||
             pauseAction.action == null)
         {
-            Debug.LogError(
-                "PauseUI: Inspector 연결을 확인하세요.",
-                this
-            );
+            Debug.LogError("PauseUI: Inspector 연결을 확인하세요.", this);
             return;
         }
 
         subscribedManager = GameManager.Instance;
 
         resumeButton.onClick.AddListener(OnResumeClicked);
+        mainTitleButton.onClick.AddListener(OnMainTitleClicked);
+        resetGameButton.onClick.AddListener(OnResetGameClicked);
 
         subscribedManager.OnGameStateChanged += HandleGameStateChanged;
 
@@ -68,10 +67,17 @@ public class PauseUI : MonoBehaviour
 
     private void OnResumeClicked()
     {
-        if (subscribedManager != null)
-        {
-            subscribedManager.ResumeGame();
-        }
+        subscribedManager.ResumeGame();
+    }
+
+    private void OnMainTitleClicked()
+    {
+        subscribedManager.ReturnToReady();
+    }
+
+    private void OnResetGameClicked()
+    {
+        subscribedManager.RestartGame();
     }
 
     private void HandleGameStateChanged(GameState state)
@@ -85,14 +91,16 @@ public class PauseUI : MonoBehaviour
     private void OnDestroy()
     {
         if (resumeButton != null)
-        {
             resumeButton.onClick.RemoveListener(OnResumeClicked);
-        }
+
+        if (mainTitleButton != null)
+            mainTitleButton.onClick.RemoveListener(OnMainTitleClicked);
+
+        if (resetGameButton != null)
+            resetGameButton.onClick.RemoveListener(OnResetGameClicked);
 
         if (subscribedManager != null)
-        {
             subscribedManager.OnGameStateChanged -= HandleGameStateChanged;
-        }
 
         if (pauseAction != null && pauseAction.action != null)
         {
