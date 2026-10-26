@@ -190,7 +190,7 @@ public class MonsterSpawner : MonoBehaviour
     {
         return Mathf.Max(
             0f,
-            playerController.BaseMoveSpeed - speedBelowPlayer
+            playerController.BaseMoveSpeed + speedBelowPlayer
         );
     }
 

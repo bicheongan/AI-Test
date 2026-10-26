@@ -4624,7 +4624,7 @@ MonoBehaviour:
   spawnInterval: 3
   difficultyInterval: 15
   speedIncrease: 1
-  speedBelowPlayer: 0
+  speedBelowPlayer: 2
 --- !u!4 &1187323937
 Transform:
   m_ObjectHideFlags: 0
